@@ -37,8 +37,7 @@ def main():
     if request.method == 'GET':
         if 'username' in session:
             random_flag = FLAGS_IMAGES_LIST[FLAG_COUNTER]
-            current_flag_name = FLAGS_DICT[random_flag.split('.')[0]]
-            return render_template("main.html", flag_image=random_flag, flag_name=current_flag_name, all_flags=FLAGS_DICT.values(), logged_in_uname=session['username'], score=TOTAL_SCORE, answer=THIS_ANSWER, flag_num=FLAG_COUNTER+1, high_score=get_user_hs())
+            return render_template("main.html", flag_image=random_flag, all_flags=FLAGS_DICT.values(), logged_in_uname=session['username'], score=TOTAL_SCORE, answer=THIS_ANSWER, flag_num=FLAG_COUNTER+1, high_score=get_user_hs())
         else:
             return redirect(url_for('login'))
         
@@ -48,17 +47,17 @@ def main():
             return new_game()
             
         if request.form.get('form_type') == 'flag_guess':
-            FLAG_COUNTER += 1
             selected_flag = request.form.get('selected_flag')
-            current_flag = request.form.get('current_flag')
+            recent_flag = FLAGS_DICT[FLAGS_IMAGES_LIST[FLAG_COUNTER].split('.')[0]]
             current_score = int(request.form.get('current_score'))
-            if selected_flag == current_flag:
+            if selected_flag == recent_flag:
                 TOTAL_SCORE = current_score + 50
                 THIS_ANSWER = "Correct!"
-                return redirect(url_for('main'))
             else:
-                THIS_ANSWER = f"Wrong!, It Was {current_flag}"
-                return redirect(url_for('main'))
+                THIS_ANSWER = f"Wrong!, It Was {recent_flag}"
+                
+            FLAG_COUNTER += 1
+            return redirect(url_for('main'))
     
 @app.route('/login', methods=['GET', 'POST'])
 def login():
