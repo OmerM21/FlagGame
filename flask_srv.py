@@ -39,7 +39,7 @@ def main():
         if 'username' in session:
             random_flag = FLAGS_IMAGES_LIST[FLAG_COUNTER]
             current_flag_name = FLAGS_DICT[random_flag.split('.')[0]]
-            return render_template("main.html", flag_image=random_flag, flag_name=current_flag_name, all_flags=FLAGS_DICT.values(), logged_in_uname=session['username'], score=TOTAL_SCORE, answer=THIS_ANSWER, flag_num=FLAG_COUNTER+1)
+            return render_template("main.html", flag_image=random_flag, flag_name=current_flag_name, all_flags=FLAGS_DICT.values(), logged_in_uname=session['username'], score=TOTAL_SCORE, answer=THIS_ANSWER, flag_num=FLAG_COUNTER+1, high_score=get_user_hs())
         else:
             return redirect(url_for('login'))
         
@@ -103,6 +103,14 @@ def save_score(current_score):
 
     with open(r"C:\Github Projects\FlagGame\static\scoreboard.json", 'w') as scoreboard_file:
         json.dump(scoreboard, scoreboard_file, indent=4)
+
+def get_user_hs():
+    with open(r"C:\Github Projects\FlagGame\static\scoreboard.json", "r") as scoreboard_file:
+        scoreboard = json.loads(scoreboard_file.read())
+    if session['username'] in scoreboard.keys():
+        return scoreboard[session['username']]
+    else:
+        return 0
 
 if __name__ == '__main__':
     app.run(debug=True)
