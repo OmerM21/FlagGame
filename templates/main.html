@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Game</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main.css') }}">
+</head>
+<body>
+    <section> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> 
+    <div class="score">
+        <h3 style="margin-bottom: 10px;">{{ logged_in_uname }}</h3>
+        <p style="margin-bottom: 10px;">Flags: {{flag_num}}/253 </p>
+        <p>Score: {{ score }}</p>
+        <form method="post">
+            <input type="hidden" name="form_type" value="game_submit">
+            <input type="hidden" name="current_score" id="current_score" value="{{ score }}">
+            <input type="submit" value="Submit Score" class="score_submit_button">
+        </form>
+    </div>
+
+    <div class="scoreboard">
+        <h3><a href="{{ url_for('scoreboard') }}" style="text-decoration: none;">Scoreboard</a></h3>
+    </div>
+
+    {% if answer != "Blank" %}
+        <div class="answer">
+            {% if answer == "Correct!" %}
+                <h3 style="color:#008000">{{ answer }}</h3>
+            {% elif answer == "New Game Started!" %}
+                <h3 style="color:#3f60cc">{{ answer }}</h3>
+            {% else %}
+                <h3 style="color:#ff0000">{{ answer }}</h3>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <img src="{{ url_for('static', filename='flags/' + flag_image) }}">
+    <form method="post" class="flag_form">
+        <input type="hidden" name="form_type" value="flag_guess">
+        <div class="form-select">
+            <select name="selected_flag" id="selected_flag", size="5">
+                {% for flag in all_flags %}
+                    <option value="{{ flag }}">{{ flag }}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="current_flag" id="current_flag" value="{{ flag_name }}">
+            <input type="hidden" name="current_score" id="current_score" value="{{ score }}">
+        </div>
+        <div class="form-button">
+            <input type="submit" value="Submit Guess" class="flag_submit_button">
+        </div>
+    </form>
+    </section>
+
+</body>
+</html>
