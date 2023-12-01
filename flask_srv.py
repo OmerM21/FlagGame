@@ -90,7 +90,6 @@ def new_game():
     random.shuffle(FLAGS_IMAGES_LIST)
     return redirect(url_for('main'))
 
-
 def save_score(current_score):
     with open(SCOREBOARD_PATH, "r") as scoreboard_file:
         scoreboard = json.loads(scoreboard_file.read())
