@@ -71,7 +71,6 @@ class User:
         self.currentflag = FLAGS_DICT[self.currentflagfile.split('.')[0]]
 
     def submit_flag(self, selectedflag):
-        print(selectedflag, self.currentflag)
         if selectedflag == self.currentflag:
             self.score += 50
             self.answer = "Correct!"
