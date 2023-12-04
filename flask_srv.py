@@ -5,11 +5,12 @@ import os
 import json
 
 app = Flask(__name__)
-app.secret_key = os.urandom(12).hex()
+app.secret_key = os.urandom(24).hex()
 
-FLAGS_IMAGES_PATH = "C:\\Github Projects\\FlagGame\\static\\flags"
-FLAGS_DICT_PATH = "C:\\Github Projects\\FlagGame\\static\\flags.json"
-SCOREBOARD_PATH = "C:\\Github Projects\\FlagGame\\static\\scoreboard.json"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+FLAGS_IMAGES_PATH = os.path.join(current_dir, "static/flags")
+FLAGS_DICT_PATH = os.path.join(current_dir, "static/flags.json")
+SCOREBOARD_PATH = os.path.join(current_dir, "static/scoreboard.json")
 
 with open(FLAGS_DICT_PATH, "r") as flags_dict_file:
     flags_dict = json.loads(flags_dict_file.read())
@@ -17,97 +18,143 @@ with open(FLAGS_DICT_PATH, "r") as flags_dict_file:
 FLAGS_DICT = flags_dict
 FLAGS_DICT = dict(sorted(FLAGS_DICT.items(), key=lambda item: item[1]))
 FLAGS_IMAGES_LIST = [os.path.basename(file) for file in glob.glob(f"{FLAGS_IMAGES_PATH}/*")]
-random.shuffle(FLAGS_IMAGES_LIST)
+FLAGS_POS_LIST = list(range(254))
+random.shuffle(FLAGS_POS_LIST)
 
-TOTAL_SCORE = 0
-THIS_ANSWER = "Blank"
-FLAG_COUNTER = 0
+class User:
+    def __init__(self, username, score=0, answer="Blank", flagcounter=0, flagposlist=FLAGS_POS_LIST, currentflag=None, currentflagfile=None):
+        self.username = username
+        self.score = score
+        self.answer = answer
+        self.flagcounter = flagcounter
+        self.flagposlist = flagposlist
+        if currentflagfile == None:
+            self.currentflagfile = FLAGS_IMAGES_LIST[self.flagposlist[self.flagcounter]]
+        else:
+            self.currentflagfile = currentflagfile
+        if currentflag == None:
+            self.currentflag = FLAGS_DICT[self.currentflagfile.split('.')[0]]
+        else:
+            self.currentflag = currentflag
+
+    def to_json(self):
+        return {
+            "username": self.username,
+            "score": self.score,
+            "answer": self.answer,
+            "flagcounter": self.flagcounter,
+            "flagposlist": self.flagposlist,
+            "currentflagfile": self.currentflagfile,
+            "currentflag": self.currentflag
+        }
+    
+    @classmethod
+    def from_json(cls, user_json):
+        return cls(
+            username = user_json["username"],
+            score = user_json["score"],
+            answer = user_json["answer"],
+            flagcounter = user_json["flagcounter"],
+            flagposlist = user_json["flagposlist"],
+            currentflag = user_json["currentflag"],
+            currentflagfile = user_json["currentflagfile"]
+        )
+
+    def first_flag(self):
+        self.flagcounter = 0
+        self.currentflagfile = FLAGS_IMAGES_LIST[self.flagposlist[self.flagcounter]]
+        self.currentflag = FLAGS_DICT[self.currentflagfile.split('.')[0]]
+    
+    def next_flag(self):
+        self.flagcounter += 1
+        self.currentflagfile = FLAGS_IMAGES_LIST[self.flagposlist[self.flagcounter]]
+        self.currentflag = FLAGS_DICT[self.currentflagfile.split('.')[0]]
+
+    def submit_flag(self, selectedflag):
+        print(selectedflag, self.currentflag)
+        if selectedflag == self.currentflag:
+            self.score += 50
+            self.answer = "Correct!"
+        else:
+            self.score -= 50
+            self.answer = f"Wrong!, It Was {self.currentflag}" 
+        self.next_flag()
+
+    def new_game(self):
+        self.score = 0
+        self.answer = "New Game Started!"
+        random.shuffle(self.flagposlist)
+        self.first_flag()
+
+    def submit_game(self):
+        with open(SCOREBOARD_PATH, "r") as scoreboard_file:
+            scoreboard = json.loads(scoreboard_file.read())
+        if self.username in scoreboard.keys():
+            if self.score > scoreboard[self.username]:
+                scoreboard[self.username] = self.score
+        else:
+            scoreboard[self.username] = self.score
+
+        with open(SCOREBOARD_PATH, 'w') as scoreboard_file:
+            json.dump(scoreboard, scoreboard_file, indent=4)
+        self.new_game()
+
+    def get_user_hs(self):
+        with open(SCOREBOARD_PATH, "r") as scoreboard_file:
+            scoreboard = json.loads(scoreboard_file.read())
+        if self.username in scoreboard.keys():
+            return scoreboard[self.username]
+        else:
+            return 0
 
 @app.route('/', methods=['GET', 'POST'])
 def main():
-    global TOTAL_SCORE
-    global THIS_ANSWER
-    global FLAGS_IMAGES_LIST
-    global FLAG_COUNTER
-
-    if FLAG_COUNTER == 253:
-        save_score(TOTAL_SCORE)
-        return new_game()
-        
     if request.method == 'GET':
-        if 'username' in session:
-            random_flag = FLAGS_IMAGES_LIST[FLAG_COUNTER]
-            return render_template("main.html", flag_image=random_flag, all_flags=FLAGS_DICT.values(), logged_in_uname=session['username'], score=TOTAL_SCORE, answer=THIS_ANSWER, flag_num=FLAG_COUNTER+1, high_score=get_user_hs())
+        if 'user' in session:
+            if session['user']['flagcounter'] == 253:
+                current_user = User.from_json(session['user'])
+                current_user.new_game()
+                session['user'] = current_user.to_json()
+                return redirect(url_for('main'))
+            else:
+                current_user = User.from_json(session['user'])
+                current_hs = current_user.get_user_hs()
+                session['user'] = current_user.to_json()
+                return render_template("main.html", flag_image=session['user']['currentflagfile'], all_flags=FLAGS_DICT.values(), logged_in_uname=session['user']['username'], score=session['user']['score'], answer=session['user']['answer'], flag_num=session['user']['flagcounter']+1, high_score=current_hs)
         else:
             return redirect(url_for('login'))
         
     if request.method == 'POST':
         if request.form.get('form_type') == 'game_submit':
-            save_score(int(request.form.get('current_score')))
-            return new_game()
+            current_user = User.from_json(session['user'])
+            current_user.submit_game()
+            session['user'] = current_user.to_json()
+            return redirect(url_for('main'))
             
         if request.form.get('form_type') == 'flag_guess':
-            selected_flag = request.form.get('selected_flag')
-            recent_flag = FLAGS_DICT[FLAGS_IMAGES_LIST[FLAG_COUNTER].split('.')[0]]
-            current_score = int(request.form.get('current_score'))
-            if selected_flag == recent_flag:
-                TOTAL_SCORE = current_score + 50
-                THIS_ANSWER = "Correct!"
-            else:
-                THIS_ANSWER = f"Wrong!, It Was {recent_flag}"
-                
-            FLAG_COUNTER += 1
+            selectedflag = request.form.get('selectedflag')
+            current_user = User.from_json(session['user'])
+            current_user.submit_flag(selectedflag)
+            session['user'] = current_user.to_json()
             return redirect(url_for('main'))
-    
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template("login.html")
     if request.method == 'POST':
-        session['username'] = request.form.get('username')
+        session['user'] = User(request.form.get('username')).to_json()
         return redirect(url_for('main')) 
     
 @app.route('/scoreboard')
 def scoreboard():
-    if 'username' in session:
+    if 'user' in session:
         with open(SCOREBOARD_PATH, "r") as scoreboard_file:
             scoreboard = json.loads(scoreboard_file.read())
         sortedScoreboard = dict(sorted(scoreboard.items(), key=lambda item: item[1], reverse=True))
         return render_template("scoreboard.html", scoreboard=sortedScoreboard)
     else:
         return redirect(url_for('login'))
-
-def new_game():
-    global TOTAL_SCORE
-    global THIS_ANSWER
-    global FLAGS_IMAGES_LIST
-    global FLAG_COUNTER
-
-    TOTAL_SCORE = 0
-    THIS_ANSWER = "New Game Started!"
-    FLAG_COUNTER = 0
-    random.shuffle(FLAGS_IMAGES_LIST)
-    return redirect(url_for('main'))
-
-def save_score(current_score):
-    with open(SCOREBOARD_PATH, "r") as scoreboard_file:
-        scoreboard = json.loads(scoreboard_file.read())
-    if session['username'] in scoreboard.keys():
-        if current_score > scoreboard[session['username']]:
-            scoreboard[session['username']] = current_score
-    else:
-        scoreboard[session['username']] = current_score
-
-    with open(SCOREBOARD_PATH, 'w') as scoreboard_file:
-        json.dump(scoreboard, scoreboard_file, indent=4)
-
-def get_user_hs():
-    with open(SCOREBOARD_PATH, "r") as scoreboard_file:
-        scoreboard = json.loads(scoreboard_file.read())
-    if session['username'] in scoreboard.keys():
-        return scoreboard[session['username']]
-    else:
-        return 0
 
 if __name__ == '__main__':
     app.run(debug=True)

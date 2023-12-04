@@ -42,12 +42,11 @@
     <form method="post" class="flag_form">
         <input type="hidden" name="form_type" value="flag_guess">
         <div class="form-select">
-            <select name="selected_flag" id="selected_flag", size="5" autofocus>
+            <select name="selectedflag" id="selectedflag", size="5" autofocus>
                 {% for flag in all_flags %}
                     <option value="{{ flag }}">{{ flag }}</option>
                 {% endfor %}
             </select>
-            <input type="hidden" name="current_score" id="current_score" value="{{ score }}">
         </div>
         <div class="form-button">
             <input type="submit" value="Submit Guess" class="flag_submit_button">
