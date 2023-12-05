@@ -6,16 +6,13 @@ from static.session_user import User, FLAGS_DICT, SCOREBOARD_PATH
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
 
+with app.app_context():
+    countries = list(FLAGS_DICT.values())
+
 @app.route('/', methods=['GET', 'POST'])
 def main():
     if request.method == 'GET':
         if 'user' in session:
-            # if session['user']['flagcounter'] == len(FLAGS_DICT)-1:
-            #     current_user = User.from_json(session['user'])
-            #     current_user.new_game()
-            #     session['user'] = current_user.to_json()
-            #     return redirect(url_for('main'))
-            # else:
             current_user = User.from_json(session['user'])
             current_hs = current_user.get_user_hs()
             session['user'] = current_user.to_json()
@@ -57,7 +54,6 @@ def scoreboard():
     
 @app.route('/countries', methods=['GET'])
 def get_countries():
-    countries = list(FLAGS_DICT.values())
     return jsonify(countries)
 
 if __name__ == '__main__':

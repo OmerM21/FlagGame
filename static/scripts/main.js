@@ -1,3 +1,21 @@
+document.addEventListener("DOMContentLoaded", function() {
+  fetch('/countries')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+      })
+      .then(data => {
+          var countries = data;
+          var submitButton = document.getElementById("submitButton");
+          autocomplete(document.getElementById("myInput"), countries, submitButton);
+      })
+      .catch(error => {
+          console.error('Fetch error:', error);
+      });
+});
+
 function autocomplete(inp, arr, submitButton) {
     var currentFocus;
     var optionSelected = false;

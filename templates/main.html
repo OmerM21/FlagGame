@@ -6,7 +6,6 @@
         <title>Flag Game</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/background.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main.css') }}">
-        <script src="{{ url_for('static', filename='scripts/main.js') }}" defer></script>
     </head>
     </head>
     <body>
@@ -42,30 +41,11 @@
             <form autocomplete="off" method="post" class="flag_form">
                 <input type="hidden" name="form_type" value="flag_guess">
                 <div class="autocomplete" style="width:300px;">
-                  <input id="myInput" type="text" name="selectedflag" placeholder="Country" >
+                  <input id="myInput" type="text" name="selectedflag" placeholder="Country" autofocus>
                 </div>
-                <input type="submit" id="submitButton"autofocus>
+                <input type="submit" id="submitButton">
             </form>              
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                  // Fetch countries from Flask route and initialize autocomplete
-                  fetch('/countries')
-                    .then(response => {
-                      if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                      }
-                      return response.json();
-                    })
-                    .then(data => {
-                      var countries = data;
-                      var submitButton = document.getElementById("submitButton");
-                      autocomplete(document.getElementById("myInput"), countries, submitButton);
-                    })
-                    .catch(error => {
-                      console.error('Fetch error:', error);
-                    });
-                });
-            </script>
         </section>
     </body>
+    <script src="{{ url_for('static', filename='scripts/main.js') }}" defer></script>
 </html>
