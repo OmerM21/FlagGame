@@ -1,2 +1,4 @@
 /flag_encrypter/
 /static/__pycache__/
+/templates/old_main.html
+/static/styles/old_main.css

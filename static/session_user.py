@@ -14,7 +14,7 @@ with open(FLAGS_DICT_PATH, "r") as flags_dict_file:
 FLAGS_DICT = flags_dict
 FLAGS_DICT = dict(sorted(FLAGS_DICT.items(), key=lambda item: item[1]))
 FLAGS_IMAGES_LIST = [os.path.basename(file) for file in glob.glob(f"{FLAGS_IMAGES_PATH}/*")]
-FLAGS_POS_LIST = list(range(254))
+FLAGS_POS_LIST = list(range(253))
 random.shuffle(FLAGS_POS_LIST)
 
 class User:
@@ -72,8 +72,11 @@ class User:
             self.answer = "Correct!"
         else:
             self.score -= 50
-            self.answer = f"Wrong!, It Was {self.currentflag}" 
-        self.next_flag()
+            self.answer = f"Wrong!, It Was {self.currentflag}"
+        if self.flagcounter == len(self.flagposlist)-1:
+            self.submit_game()
+        else:
+            self.next_flag()
 
     def new_game(self):
         self.score = 0

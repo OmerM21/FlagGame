@@ -6,6 +6,8 @@
         <title>Flag Game</title>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/background.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main.css') }}">
+        <script src="{{ url_for('static', filename='scripts/main.js') }}" defer></script>
+    </head>
     </head>
     <body>
         <section> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> <span></span> 
@@ -19,7 +21,7 @@
                 <form method="post">
                     <input type="hidden" name="form_type" value="game_submit">
                     <input type="hidden" name="current_score" id="current_score" value="{{ score }}">
-                    <input type="submit" value="Submit Score" class="score_submit_button">
+                    <input type="submit" value="Submit Game" class="score_submit_button">
                 </form>
             </div>
             <div class="scoreboard">
@@ -37,19 +39,33 @@
                 </div>
             {% endif %}
             <img src="{{ url_for('static', filename='flags/' + flag_image) }}">
-            <form method="post" class="flag_form">
+            <form autocomplete="off" method="post" class="flag_form">
                 <input type="hidden" name="form_type" value="flag_guess">
-                <div class="form-select">
-                    <select name="selectedflag" id="selectedflag", size="5" autofocus>
-                        {% for flag in all_flags %}
-                            <option value="{{ flag }}">{{ flag }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="autocomplete" style="width:300px;">
+                  <input id="myInput" type="text" name="selectedflag" placeholder="Country" >
                 </div>
-                <div class="form-button">
-                    <input type="submit" value="Submit Guess" class="flag_submit_button">
-                </div>
-            </form>
+                <input type="submit" id="submitButton"autofocus>
+            </form>              
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                  // Fetch countries from Flask route and initialize autocomplete
+                  fetch('/countries')
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                      }
+                      return response.json();
+                    })
+                    .then(data => {
+                      var countries = data;
+                      var submitButton = document.getElementById("submitButton");
+                      autocomplete(document.getElementById("myInput"), countries, submitButton);
+                    })
+                    .catch(error => {
+                      console.error('Fetch error:', error);
+                    });
+                });
+            </script>
         </section>
     </body>
 </html>
